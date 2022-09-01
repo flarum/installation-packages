@@ -43,7 +43,7 @@ jobs:
           tools: phpunit, composer:v2
 
       - name: Run Build Script
-        run: bin/build
+        run: bin/build.sh
         env:
           FLARUM_VERSION: ${{ inputs.flarum_version }}
           PHP_VERSION: ${{ matrix.php }}
