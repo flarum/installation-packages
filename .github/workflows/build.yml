@@ -22,11 +22,11 @@ jobs:
         bundle:
           # Bundle with no package manager.
           # Not needed for now. Those who do not wish to use the package manager, may install from the CLI.
-          # - name: Default
+          # - name: default
           #   value: default
 
           # Bundle with package manager.
-          - name: Package Manager
+          - name: package-manager
             value: flarum/package-manager
 
     name: Build Flarum ${{ matrix.bundle.name }} Bundle on PHP ${{ matrix.php }}
@@ -40,7 +40,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: xdebug
           extensions: curl, dom, gd, json, mbstring, openssl, pdo_mysql, tokenizer, zip
-          tools: phpunit, composer:v2
+          tools: composer:v2
 
       - name: Run Build Script
         run: bin/build.sh

@@ -21,20 +21,20 @@ echo -e "$style - installing Flarum... $reset"
 composer create-project flarum/flarum . --prefer-dist --no-interaction
 
 # Install additional Extensions.
-COMPOSER_PACKAGES = ''
+COMPOSER_PACKAGES=""
 if [[ "$BUNDLE_VALUE" != "default" ]]; then
   echo -e "$style - installing bundle $BUNDLE_NAME $reset"
 
   for p in "$BUNDLE_VALUE"; do
-    COMPOSER_PACKAGES = "${COMPOSER_PACKAGES} ${p}:*"
+    COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}:*"
   done
 
   composer require $COMPOSER_PACKAGES --no-interaction
 fi
 
 # Set file name and destination path.
-FILE_NAME = flarum-$(FLARUM_VERSION)-$(BUNDLE_NAME)-php$(PHP_VERSION).tar.gz
-FILE_DESTINATION = packages/flarum-$(FLARUM_VERSION)
+FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$PHP_VERSION.tar.gz
+FILE_DESTINATION=packages/flarum-$FLARUM_VERSION
 
 # Create installation package.
 cd ../
@@ -49,5 +49,5 @@ rm -R installation_workspace
 
 # Commit package.
 git add $FILE_DESTINATION/*.tar.gz
-git commit -m "Create installation packages for Flarum v$FLARUM_VERSION" -a
+git commit -m "Installation packages for Flarum v$FLARUM_VERSION" -a
 git push
