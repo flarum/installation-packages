@@ -1,0 +1,50 @@
+name: Build Flarum Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      flarum_version:
+        description: 'Flarum Version'
+        required: true
+        type: string
+      php_versions:
+        description: 'PHP Versions'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ${{ fromJSON(inputs.php_versions) }}
+        bundle:
+          # Bundle with no package manager.
+          # Not needed for now. Those who do not wish to use the package manager, may install from the CLI.
+          # - name: Default
+          #   value: default
+
+          # Bundle with package manager.
+          - name: Package Manager
+            value: flarum/package-manager
+
+    name: Build Flarum ${{ matrix.bundle.name }} Bundle on PHP ${{ matrix.php }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+          extensions: curl, dom, gd, json, mbstring, openssl, pdo_mysql, tokenizer, zip
+          tools: phpunit, composer:v2
+
+      - name: Run Build Script
+        run: bin/build
+        env:
+          PHP_VERSION: ${{ matrix.php }}
+          BUNDLE_NAME: ${{ matrix.bundle.name }}
+          BUNDLE_VALUE: ${{ matrix.bundle.value }}
