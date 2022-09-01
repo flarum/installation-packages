@@ -45,6 +45,7 @@ jobs:
       - name: Run Build Script
         run: bin/build
         env:
+          FLARUM_VERSION: ${{ inputs.flarum_version }}
           PHP_VERSION: ${{ matrix.php }}
           BUNDLE_NAME: ${{ matrix.bundle.name }}
           BUNDLE_VALUE: ${{ matrix.bundle.value }}

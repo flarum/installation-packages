@@ -6,9 +6,6 @@ set -e
 style='\e[47;1;31m'
 reset='\e[0;10m'
 
-# Get Flarum Version (transforms "refs/tags/vX.Y.Z" to "vX.Y.Z" then "vX.Y.Z" to "X.Y.Z").
-FLARUM_VERSION = ${GITHUB_SHA//refs\/tags\// } | sed 's/v//g'
-
 # Setup Git.
 echo -e "$style - setting up git $reset"
 git config user.name 'flarum-bot'
