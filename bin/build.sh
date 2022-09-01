@@ -21,13 +21,12 @@ echo -e "$style - installing Flarum... $reset"
 composer create-project flarum/flarum . --prefer-dist --no-interaction
 
 # Install additional Extensions.
+COMPOSER_PACKAGES = ''
 if [[ "$BUNDLE_VALUE" != "default" ]]; then
   echo -e "$style - installing bundle $BUNDLE_NAME $reset"
 
-  COMPOSER_PACKAGES = ''
-
   for p in "$BUNDLE_VALUE"; do
-    COMPOSER_PACKAGES = "${COMPOSER_PACKAGES} p:*"
+    COMPOSER_PACKAGES = "${COMPOSER_PACKAGES} ${p}:*"
   done
 
   composer require $COMPOSER_PACKAGES --no-interaction
