@@ -47,7 +47,7 @@ zip -r $FILE_NAME.zip *
 
 # Move package to the flarum version folder.
 mkdir -p ../$FILE_DESTINATION
-mv $FILE_NAME ../$FILE_DESTINATION/
+mv $FILE_NAME.* ../$FILE_DESTINATION/
 cd ../
 
 # Delete workspace.
