@@ -19,7 +19,6 @@ jobs:
 
     strategy:
       matrix:
-        php: ${{ fromJSON(inputs.php_versions) }}
         bundle:
           # Bundle with no package manager.
           # Not needed for now. Those who do not wish to use the package manager, may install from the CLI.
@@ -30,7 +29,7 @@ jobs:
           # - name: package-manager
           #   value: flarum/package-manager
 
-    name: Build Flarum ${{ matrix.bundle.name }} Bundle on PHP ${{ matrix.php }}
+    name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
     steps:
       - uses: actions/checkout@v2
@@ -38,7 +37,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: 8.1
           coverage: xdebug
           extensions: curl, dom, gd, json, mbstring, openssl, pdo_mysql, tokenizer, zip
           tools: composer:v2
@@ -47,6 +46,6 @@ jobs:
         run: bin/build.sh
         env:
           FLARUM_VERSION: ${{ inputs.flarum_version }}
-          PHP_VERSION: ${{ matrix.php }}
+          PHP_VERSIONS: ${{ inputs.php_versions }}
           BUNDLE_NAME: ${{ matrix.bundle.name }}
           BUNDLE_VALUE: ${{ matrix.bundle.value }}
