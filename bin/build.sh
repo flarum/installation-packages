@@ -12,18 +12,20 @@ git config user.name 'flarum-bot'
 git config user.email 'bot@flarum.org'
 
 # Setup an isolated workspace.
+TMP_WORKSPACE=installation_workspace
 echo -e "$style - setting up isolated workspace $reset"
-mkdir installation_workspace
-cd installation_workspace
+mkdir $TMP_WORKSPACE
+cd $TMP_WORKSPACE
 
 # Install Flarum.
 echo -e "$style - installing Flarum... $reset"
 composer create-project flarum/flarum . --prefer-dist --no-interaction
 
 # Install additional Extensions.
-COMPOSER_PACKAGES=""
 if [[ "$BUNDLE_VALUE" != "default" ]]; then
   echo -e "$style - installing bundle $BUNDLE_NAME $reset"
+
+  COMPOSER_PACKAGES=""
 
   for p in "$BUNDLE_VALUE"; do
     COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}:*"
@@ -33,19 +35,23 @@ if [[ "$BUNDLE_VALUE" != "default" ]]; then
 fi
 
 # Set file name and destination path.
-FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$PHP_VERSION.tar.gz
+FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$PHP_VERSION
 FILE_DESTINATION=packages/v$FLARUM_VERSION
 
 # Create installation package.
-cd ../
-tar -czvf $FILE_NAME installation_workspace/*
+cd ../$TMP_WORKSPACE
+# tar.gz format.
+tar -czvf $FILE_NAME.tar.gz *
+# zip format.
+zip -r $FILE_NAME.zip *
 
 # Move package to the flarum version folder.
-mkdir -p $FILE_DESTINATION
-mv $FILE_NAME $FILE_DESTINATION/
+mkdir -p ../$FILE_DESTINATION
+mv $FILE_NAME ../$FILE_DESTINATION/
+cd ../
 
 # Delete workspace.
-rm -R installation_workspace
+rm -R $TMP_WORKSPACE
 
 # Commit package.
 git add $FILE_DESTINATION/*.tar.gz
