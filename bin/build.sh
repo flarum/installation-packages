@@ -34,7 +34,7 @@ fi
 
 # Set file name and destination path.
 FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$PHP_VERSION.tar.gz
-FILE_DESTINATION=packages/flarum-$FLARUM_VERSION
+FILE_DESTINATION=packages/v$FLARUM_VERSION
 
 # Create installation package.
 cd ../
