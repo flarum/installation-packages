@@ -49,7 +49,6 @@ for php in $PHP_VERSIONS; do
   FILE_DESTINATION=packages/v$FLARUM_VERSION
 
   # Create installation packages.
-  cd $TMP_WORKSPACE
   # tar.gz format.
   tar -czf ../$FILE_NAME.tar.gz * > /dev/null
   # zip format.
