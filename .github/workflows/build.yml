@@ -1,4 +1,5 @@
-name: Build Flarum Packages
+# The name is used in flarum/framework/.github/workflows/prepare-release.yml
+name: Build Flarum Install Packages
 
 on:
   workflow_dispatch:
