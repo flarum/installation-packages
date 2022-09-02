@@ -26,7 +26,7 @@ for php in $PHP_VERSIONS; do
   echo -e "$style - building for $php $reset"
 
   # Emulate PHP version.
-  composer global config platform.php $php
+  composer --global config platform.php $php
 
   # Setup an isolated workspace.
   echo -e "$style - setting up isolated workspace $reset"
@@ -49,16 +49,15 @@ for php in $PHP_VERSIONS; do
   FILE_DESTINATION=packages/v$FLARUM_VERSION
 
   # Create installation package.
-  cd ../$TMP_WORKSPACE
+  cd ../
   # tar.gz format.
-  tar -czf $FILE_NAME.tar.gz *
+  tar -czf $FILE_NAME.tar.gz $TMP_WORKSPACE/* > /dev/null
   # zip format.
-  zip -r $FILE_NAME.zip *
+  zip -r $FILE_NAME.zip $TMP_WORKSPACE/*
 
   # Move package to the flarum version folder.
-  mkdir -p ../$FILE_DESTINATION
-  mv $FILE_NAME.* ../$FILE_DESTINATION/
-  cd ../
+  mkdir -p $FILE_DESTINATION
+  mv $FILE_NAME.* $FILE_DESTINATION/
 
   # Track new packages.
   git add $FILE_DESTINATION/*
