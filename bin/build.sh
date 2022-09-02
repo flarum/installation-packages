@@ -17,16 +17,16 @@ TMP_WORKSPACE=installation_workspace
 # Set packages to require later based on bundle value.
 COMPOSER_PACKAGES=""
 if [[ "$BUNDLE_VALUE" != "default" ]]; then
-  for p in "$BUNDLE_VALUE"; do
+  for p in $BUNDLE_VALUE; do
     COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}:*"
   done
 fi
 
-for php in "$PHP_VERSIONS"; do
+for php in $PHP_VERSIONS; do
   echo -e "$style - building for $php $reset"
 
   # Emulate PHP version.
-  composer config platform.php $php
+  composer global config platform.php $php
 
   # Setup an isolated workspace.
   echo -e "$style - setting up isolated workspace $reset"
@@ -51,7 +51,7 @@ for php in "$PHP_VERSIONS"; do
   # Create installation package.
   cd ../$TMP_WORKSPACE
   # tar.gz format.
-  tar -czvf $FILE_NAME.tar.gz *
+  tar -czf $FILE_NAME.tar.gz *
   # zip format.
   zip -r $FILE_NAME.zip *
 
