@@ -22,12 +22,12 @@ jobs:
         bundle:
           # Bundle with no package manager.
           # Not needed for now. Those who do not wish to use the package manager, may install from the CLI.
-          - name: default
-            value: default
+          # - name: default
+          #   value: default
 
           # Bundle with package manager.
-          # - name: package-manager
-          #   value: flarum/package-manager
+          - name: package-manager
+            value: flarum/package-manager
 
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
