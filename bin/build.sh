@@ -48,14 +48,15 @@ for php in $PHP_VERSIONS; do
   FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$php
   FILE_DESTINATION=packages/v$FLARUM_VERSION
 
-  # Create installation package.
-  cd ../
+  # Create installation packages.
+  cd $TMP_WORKSPACE
   # tar.gz format.
-  tar -czf $FILE_NAME.tar.gz $TMP_WORKSPACE/* > /dev/null
+  tar -czf ../$FILE_NAME.tar.gz * > /dev/null
   # zip format.
-  zip -r $FILE_NAME.zip $TMP_WORKSPACE/*
+  zip -r ../$FILE_NAME.zip *
 
   # Move package to the flarum version folder.
+  cd ../
   mkdir -p $FILE_DESTINATION
   mv $FILE_NAME.* $FILE_DESTINATION/
 
