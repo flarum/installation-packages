@@ -27,7 +27,7 @@ jobs:
 
           # Bundle with package manager.
           - name: package-manager
-            value: flarum/package-manager
+            value: flarum/package-manager:@beta
 
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 

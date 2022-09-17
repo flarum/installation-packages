@@ -18,7 +18,11 @@ TMP_WORKSPACE=installation_workspace
 COMPOSER_PACKAGES=""
 if [[ "$BUNDLE_VALUE" != "default" ]]; then
   for p in $BUNDLE_VALUE; do
-    COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}:*"
+    if [[ ${p} != *":"* ]]; then
+      COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}:*"
+    else
+      COMPOSER_PACKAGES="${COMPOSER_PACKAGES} ${p}"
+    fi;
   done
 fi
 
