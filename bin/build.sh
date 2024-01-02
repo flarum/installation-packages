@@ -26,6 +26,9 @@ if [[ "$BUNDLE_VALUE" != "default" ]]; then
   done
 fi
 
+# From the tag name which is in the format of v1.8.3 or v1.8.3-beta.13 extract a minor version number.
+FLARUM_COMPOSER_VERSION=$(echo $FLARUM_VERSION | sed -e 's/^v//' | cut -d'.' -f1,2)
+
 for php in $PHP_VERSIONS; do
   echo -e "$style - building for $php $reset"
 
@@ -39,7 +42,7 @@ for php in $PHP_VERSIONS; do
 
   # Install Flarum.
   echo -e "$style - installing Flarum... $reset"
-  composer create-project flarum/flarum . --prefer-dist --no-interaction
+  composer create-project flarum/flarum:^$FLARUM_COMPOSER_VERSION . --prefer-dist --no-interaction
 
   # Install additional Extensions.
   if [[ "$COMPOSER_PACKAGES" != "" ]]; then
@@ -52,8 +55,8 @@ for php in $PHP_VERSIONS; do
   composer config prefer-stable true
 
   # Set file name and destination path.
-  FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$php
-  FILE_DESTINATION=packages/v$FLARUM_VERSION
+  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION-$BUNDLE_NAME-php$php
+  FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
   # Create installation packages.
   # tar.gz format.
@@ -74,5 +77,5 @@ for php in $PHP_VERSIONS; do
 done
 
 # Commit package.
-git commit -m "Installation packages for Flarum v$FLARUM_VERSION" -a
+git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION" -a
 git push
