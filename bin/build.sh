@@ -175,8 +175,14 @@ for php in $PHP_VERSIONS; do
   rm -R $TMP_WORKSPACE
 done
 
+BUNDLE_NAME_OR_DEFAULT=$BUNDLE_NAME
+
+if [[ "$BUNDLE_NAME_OR_DEFAULT" == "" ]]; then
+  BUNDLE_NAME_OR_DEFAULT="default"
+fi
+
 # Commit package.
-git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION" -a
+git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION ($BUNDLE_NAME_OR_DEFAULT)" -a
 
 # Push while rebasing to avoid conflicts.
 git pull --rebase
