@@ -111,14 +111,13 @@ for php in $PHP_VERSIONS; do
   composer install --no-dev
 
   # Suffix if the bundle is not empty
+  BUNDLE_SUFFIX=""
   if [[ "$BUNDLE_NAME" != "" ]]; then
-    BUNDLE_NAME="-${BUNDLE_NAME}"
-  else
-    BUNDLE_NAME=""
+    BUNDLE_SUFFIX="-${BUNDLE_NAME}"
   fi
 
   # Set file name and destination path.
-  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_NAME-php$php
+  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_SUFFIX-php$php
   FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
   # If the bundle name is `no-public-dir` we will modify the skeleton to remove the public directory.
@@ -170,4 +169,7 @@ done
 
 # Commit package.
 git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION" -a
+
+# Push while rebasing to avoid conflicts.
+git pull --rebase
 git push
