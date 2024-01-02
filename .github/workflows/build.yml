@@ -27,11 +27,11 @@ jobs:
 
           # Bundle with package manager.
           - name: ''
-            value: flarum/package-manager
+            value: flarum/package-manager:@beta
 
           # A bundle with a package manager and no public directory/path (mostly for shared hosting).
           - name: no-public-dir
-            value: flarum/package-manager
+            value: flarum/package-manager:@beta
 
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
