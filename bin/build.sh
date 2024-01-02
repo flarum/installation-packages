@@ -121,6 +121,13 @@ for php in $PHP_VERSIONS; do
   FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_NAME-php$php
   FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
+  # Before zipping, set the correct permissions.
+  find . -type d -exec chmod 755 {} \;
+  find . -type f -exec chmod 644 {} \;
+
+  # and the correct ownership.
+  chgrp -R www-data .
+
   # Create installation packages.
   # tar.gz format.
   tar -czf ../$FILE_NAME.tar.gz * > /dev/null
