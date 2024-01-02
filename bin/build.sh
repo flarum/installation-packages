@@ -121,6 +121,32 @@ for php in $PHP_VERSIONS; do
   FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_NAME-php$php
   FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
+  # If the bundle name is `no-public-dir` we will modify the skeleton to remove the public directory.
+  if [[ "$BUNDLE_NAME" == "no-public-dir" ]]; then
+    # Move everything from the public directory to the root.
+    mv public/* .
+
+    # Remove the public directory from the site.php file.
+    sed -i 's/public\///g' site.php
+
+    # Point the require in index.php to the correct location of site.php (../site.php => ./site.php).
+    sed -i 's/\.\.\/site\.php/\.\/site\.php/g' index.php
+
+    # Remove the public directory.
+    rm -R public
+
+    # Uncomment protection rules in .htaccess which begin with the line `  # <!-- BEGIN EXPOSED RESOURCES PROTECTION -->`
+    # and end with the line `  # <!-- END EXPOSED RESOURCES PROTECTION -->`
+    sed -i '/# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->/,/# <!-- END EXPOSED RESOURCES PROTECTION -->/ s/# //' .htaccess
+
+    # Uncomment protection rules in .nginx.conf which begin with the line `# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->`
+    # and end with the line `# <!-- END EXPOSED RESOURCES PROTECTION -->`
+    sed -i '/# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->/,/# <!-- END EXPOSED RESOURCES PROTECTION -->/ s/# //' .nginx.conf
+
+    # Set `Disallow sensitive directories` to true in web.config
+    sed -i 's/<rule name="Disallow sensitive directories" enabled="false"/<rule name="Disallow sensitive directories" enabled="true"/g' web.config
+  fi
+
   # Before zipping, set the correct permissions.
   find . -type d -exec chmod 755 {} \;
   find . -type f -exec chmod 644 {} \;

@@ -26,7 +26,11 @@ jobs:
           #   value: default
 
           # Bundle with package manager.
-          - name:
+          - name: ''
+            value: flarum/package-manager
+
+          # A bundle with a package manager and no public directory/path (mostly for shared hosting).
+          - name: no-public-dir
             value: flarum/package-manager
 
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
