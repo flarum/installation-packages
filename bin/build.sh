@@ -48,6 +48,9 @@ for php in $PHP_VERSIONS; do
     composer require $COMPOSER_PACKAGES --no-interaction
   fi
 
+  # Make sure prefer-stable is set to true.
+  composer config prefer-stable true
+
   # Set file name and destination path.
   FILE_NAME=flarum-$FLARUM_VERSION-$BUNDLE_NAME-php$php
   FILE_DESTINATION=packages/v$FLARUM_VERSION
