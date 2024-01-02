@@ -110,8 +110,15 @@ for php in $PHP_VERSIONS; do
   echo -e "$style - running composer install $reset"
   composer install --no-dev
 
+  # Suffix if the bundle is not empty
+  if [[ "$BUNDLE_NAME" != "" ]]; then
+    BUNDLE_NAME="-${BUNDLE_NAME}"
+  else
+    BUNDLE_NAME=""
+  fi
+
   # Set file name and destination path.
-  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION-$BUNDLE_NAME-php$php
+  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_NAME-php$php
   FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
   # Create installation packages.
