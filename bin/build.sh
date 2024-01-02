@@ -3,6 +3,51 @@
 # exit on error.
 set -e
 
+get_expected_version() {
+    local FLARUM_VERSION="$1"
+
+    # Remove the leading 'v' if it exists
+    local version=${FLARUM_VERSION#v}
+
+    # Pick the major version number
+    IFS='.' read -ra version_parts <<< "$version"
+    local major=${version_parts[0]}
+
+    # stability tag
+    local stability=$(get_stability_tag $version)
+
+    # Construct the expected version
+    local majorSemanticVersion=""
+    if [ -n "$stability" ]; then
+        majorSemanticVersion="$major.0-$stability"
+    else
+        majorSemanticVersion="$major.0"
+    fi
+
+    # Return the expected version
+    echo "$majorSemanticVersion"
+}
+
+# get the stability tag from the version number
+get_stability_tag() {
+    local FLARUM_VERSION="$1"
+
+    # Define stability tags
+    local stabilityTags=("alpha" "beta" "rc" "dev")
+    local stability=""
+
+    # Check for stability suffix
+    for tag in "${stabilityTags[@]}"; do
+        if [[ $version == *"-$tag"* ]]; then
+            stability=$tag
+            break
+        fi
+    done
+
+    # Return the stability tag
+    echo "$stability"
+}
+
 style='\e[47;1;31m'
 reset='\e[0;10m'
 
@@ -89,49 +134,3 @@ done
 # Commit package.
 git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION" -a
 git push
-
-
-get_expected_version() {
-    local FLARUM_VERSION="$1"
-
-    # Remove the leading 'v' if it exists
-    local version=${FLARUM_VERSION#v}
-
-    # Pick the major version number
-    IFS='.' read -ra version_parts <<< "$version"
-    local major=${version_parts[0]}
-
-    # stability tag
-    local stability=$(get_stability_tag $version)
-
-    # Construct the expected version
-    local majorSemanticVersion=""
-    if [ -n "$stability" ]; then
-        majorSemanticVersion="$major.0-$stability"
-    else
-        majorSemanticVersion="$major.0"
-    fi
-
-    # Return the expected version
-    echo "$majorSemanticVersion"
-}
-
-# get the stability tag from the version number
-get_stability_tag() {
-    local FLARUM_VERSION="$1"
-
-    # Define stability tags
-    local stabilityTags=("alpha" "beta" "rc" "dev")
-    local stability=""
-
-    # Check for stability suffix
-    for tag in "${stabilityTags[@]}"; do
-        if [[ $version == *"-$tag"* ]]; then
-            stability=$tag
-            break
-        fi
-    done
-
-    # Return the stability tag
-    echo "$stability"
-}
