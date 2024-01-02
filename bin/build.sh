@@ -80,6 +80,8 @@ if [ -z "$STABILITY_TAG" ]; then
     STABILITY_TAG="stable"
 fi
 
+shopt -s dotglob
+
 for php in $PHP_VERSIONS; do
   echo -e "$style - building for $php $reset"
 
@@ -125,8 +127,8 @@ for php in $PHP_VERSIONS; do
     # Move everything from the public directory to the root.
     mv public/* .
 
-    # Remove the public directory from the site.php file.
-    sed -i 's/public\///g' site.php
+    # Remove the public directory from the site.php file (__DIR__.'/public' => __DIR__).
+    sed -i "s/__DIR__.'\/public'/__DIR__/g" site.php
 
     # Point the require in index.php to the correct location of site.php (../site.php => ./site.php).
     sed -i 's/\.\.\/site\.php/\.\/site\.php/g' index.php
@@ -137,10 +139,16 @@ for php in $PHP_VERSIONS; do
     # Uncomment protection rules in .htaccess which begin with the line `  # <!-- BEGIN EXPOSED RESOURCES PROTECTION -->`
     # and end with the line `  # <!-- END EXPOSED RESOURCES PROTECTION -->`
     sed -i '/# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->/,/# <!-- END EXPOSED RESOURCES PROTECTION -->/ s/# //' .htaccess
+    # now delete the begin and end comments
+    sed -i '/<!-- BEGIN EXPOSED RESOURCES PROTECTION -->/d' .htaccess
+    sed -i '/<!-- END EXPOSED RESOURCES PROTECTION -->/d' .htaccess
 
     # Uncomment protection rules in .nginx.conf which begin with the line `# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->`
     # and end with the line `# <!-- END EXPOSED RESOURCES PROTECTION -->`
     sed -i '/# <!-- BEGIN EXPOSED RESOURCES PROTECTION -->/,/# <!-- END EXPOSED RESOURCES PROTECTION -->/ s/# //' .nginx.conf
+    # now delete the begin and end comments
+    sed -i '/<!-- BEGIN EXPOSED RESOURCES PROTECTION -->/d' .nginx.conf
+    sed -i '/<!-- END EXPOSED RESOURCES PROTECTION -->/d' .nginx.conf
 
     # Set `Disallow sensitive directories` to true in web.config
     sed -i 's/<rule name="Disallow sensitive directories" enabled="false"/<rule name="Disallow sensitive directories" enabled="true"/g' web.config
