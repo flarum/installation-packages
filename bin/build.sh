@@ -148,15 +148,11 @@ for php in $PHP_VERSIONS; do
   fi
 
   # Before zipping, set the correct permissions.
-  find . -type d -exec chmod 755 {} \;
-  find . -type f -exec chmod 644 {} \;
-
-  # and the correct ownership.
-  chgrp -R www-data .
+  chmod -R 755 .
 
   # Create installation packages.
   # tar.gz format.
-  tar -czf ../$FILE_NAME.tar.gz * > /dev/null
+  tar -czf ../$FILE_NAME.tar.gz --owner=www-data --group=www-data * > /dev/null
   # zip format.
   zip -r ../$FILE_NAME.zip *
 
