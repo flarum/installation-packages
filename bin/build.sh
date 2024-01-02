@@ -26,8 +26,14 @@ if [[ "$BUNDLE_VALUE" != "default" ]]; then
   done
 fi
 
-# From the tag name which is in the format of v1.8.3 or v1.8.3-beta.13 extract a minor version number.
-FLARUM_COMPOSER_VERSION=$(echo $FLARUM_VERSION | sed -e 's/^v//' | cut -d'.' -f1,2)
+# From the tag name which is in the format of v1.8.3 or v1.8.3-beta.13 extract a major version number (1.0)
+FLARUM_COMPOSER_VERSION=$(get_expected_version $FLARUM_VERSION)
+STABILITY_TAG=$(get_stability_tag $FLARUM_VERSION)
+
+# default to stable if empty
+if [ -z "$STABILITY_TAG" ]; then
+    STABILITY_TAG="stable"
+fi
 
 for php in $PHP_VERSIONS; do
   echo -e "$style - building for $php $reset"
@@ -42,17 +48,21 @@ for php in $PHP_VERSIONS; do
 
   # Install Flarum.
   echo -e "$style - installing Flarum... $reset"
-  composer create-project flarum/flarum:^$FLARUM_COMPOSER_VERSION . --prefer-dist --no-interaction
+  composer create-project flarum/flarum:^$FLARUM_COMPOSER_VERSION . --no-dev --stability=$STABILITY_TAG --no-install
 
   # Install additional Extensions.
   if [[ "$COMPOSER_PACKAGES" != "" ]]; then
     echo -e "$style - installing bundle $BUNDLE_NAME $reset"
 
-    composer require $COMPOSER_PACKAGES --no-interaction
+    composer require $COMPOSER_PACKAGES --no-interaction --no-update
   fi
 
   # Make sure prefer-stable is set to true.
   composer config prefer-stable true
+
+  # Run composer install.
+  echo -e "$style - running composer install $reset"
+  composer install --no-dev
 
   # Set file name and destination path.
   FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION-$BUNDLE_NAME-php$php
@@ -79,3 +89,49 @@ done
 # Commit package.
 git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION" -a
 git push
+
+
+get_expected_version() {
+    local FLARUM_VERSION="$1"
+
+    # Remove the leading 'v' if it exists
+    local version=${FLARUM_VERSION#v}
+
+    # Pick the major version number
+    IFS='.' read -ra version_parts <<< "$version"
+    local major=${version_parts[0]}
+
+    # stability tag
+    local stability=$(get_stability_tag $version)
+
+    # Construct the expected version
+    local majorSemanticVersion=""
+    if [ -n "$stability" ]; then
+        majorSemanticVersion="$major.0-$stability"
+    else
+        majorSemanticVersion="$major.0"
+    fi
+
+    # Return the expected version
+    echo "$majorSemanticVersion"
+}
+
+# get the stability tag from the version number
+get_stability_tag() {
+    local FLARUM_VERSION="$1"
+
+    # Define stability tags
+    local stabilityTags=("alpha" "beta" "rc" "dev")
+    local stability=""
+
+    # Check for stability suffix
+    for tag in "${stabilityTags[@]}"; do
+        if [[ $version == *"-$tag"* ]]; then
+            stability=$tag
+            break
+        fi
+    done
+
+    # Return the stability tag
+    echo "$stability"
+}
