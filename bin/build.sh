@@ -104,6 +104,7 @@ for php in $PHP_VERSIONS; do
 
   # Make sure prefer-stable is set to true.
   composer config prefer-stable true
+  composer config minimum-stability $STABILITY_TAG
 
   # Run composer install.
   echo -e "$style - running composer install $reset"
