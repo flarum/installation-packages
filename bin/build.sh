@@ -19,9 +19,9 @@ get_expected_version() {
     # Construct the expected version
     local majorSemanticVersion=""
     if [ -n "$stability" ]; then
-        majorSemanticVersion="$major.0-$stability"
+        majorSemanticVersion="$major-$stability"
     else
-        majorSemanticVersion="$major.0"
+        majorSemanticVersion="$major"
     fi
 
     # Return the expected version
@@ -119,7 +119,7 @@ for php in $PHP_VERSIONS; do
   fi
 
   # Set file name and destination path.
-  FILE_NAME=flarum-$FLARUM_COMPOSER_VERSION$BUNDLE_SUFFIX-php$php
+  FILE_NAME=flarum-v$FLARUM_COMPOSER_VERSION$BUNDLE_SUFFIX-php$php
   FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
 
   # If the bundle name is `no-public-dir` we will modify the skeleton to remove the public directory.
