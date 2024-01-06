@@ -19,9 +19,9 @@ get_expected_version() {
     # Construct the expected version
     local majorSemanticVersion=""
     if [ -n "$stability" ]; then
-        majorSemanticVersion="$major-$stability"
+        majorSemanticVersion="$major.x-$stability"
     else
-        majorSemanticVersion="$major"
+        majorSemanticVersion="$major.x"
     fi
 
     # Return the expected version
@@ -72,7 +72,7 @@ if [[ "$BUNDLE_VALUE" != "default" ]]; then
 fi
 
 # From the tag name which is in the format of v1.8.3 or v1.8.3-beta.13 extract a major version number (1.0)
-FLARUM_COMPOSER_VERSION=$(get_expected_version $FLARUM_VERSION)
+FLARUM_MAJOR_VERSION=$(get_expected_version $FLARUM_VERSION)
 STABILITY_TAG=$(get_stability_tag $FLARUM_VERSION)
 
 # default to stable if empty
@@ -95,6 +95,8 @@ for php in $PHP_VERSIONS; do
 
   # Install Flarum.
   echo -e "$style - installing Flarum... $reset"
+  # replace .x with .0
+  FLARUM_COMPOSER_VERSION=${FLARUM_MAJOR_VERSION//.x/.0}
   composer create-project flarum/flarum:^$FLARUM_COMPOSER_VERSION . --no-dev --stability=$STABILITY_TAG --no-install
 
   # Install additional Extensions.
@@ -119,8 +121,8 @@ for php in $PHP_VERSIONS; do
   fi
 
   # Set file name and destination path.
-  FILE_NAME=flarum-v$FLARUM_COMPOSER_VERSION$BUNDLE_SUFFIX-php$php
-  FILE_DESTINATION=packages/v$FLARUM_COMPOSER_VERSION
+  FILE_NAME=flarum-v$FLARUM_MAJOR_VERSION$BUNDLE_SUFFIX-php$php
+  FILE_DESTINATION=packages/v$FLARUM_MAJOR_VERSION
 
   # If the bundle name is `no-public-dir` we will modify the skeleton to remove the public directory.
   if [[ "$BUNDLE_NAME" == "no-public-dir" ]]; then
@@ -182,7 +184,7 @@ if [[ "$BUNDLE_NAME_OR_DEFAULT" == "" ]]; then
 fi
 
 # Commit package.
-git commit -m "Installation packages for Flarum v$FLARUM_COMPOSER_VERSION ($BUNDLE_NAME_OR_DEFAULT)" -a
+git commit -m "Installation packages for Flarum v$FLARUM_MAJOR_VERSION ($BUNDLE_NAME_OR_DEFAULT)" -a
 
 # Push while rebasing to avoid conflicts.
 git pull --rebase
