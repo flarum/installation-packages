@@ -25,13 +25,13 @@ jobs:
           # - name: default
           #   value: default
 
-          # Bundle with package manager.
+          # Bundle with the extension manager.
           - name: ''
-            value: flarum/package-manager
+            value: flarum/extension-manager
 
-          # A bundle with a package manager and no public directory/path (mostly for shared hosting).
+          # A bundle with the extension manager and no public directory/path (mostly for shared hosting).
           - name: no-public-dir
-            value: flarum/package-manager
+            value: flarum/extension-manager
 
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
