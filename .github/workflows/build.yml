@@ -18,6 +18,10 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      # Each matrix job commits + pushes to `main` at the end of `build.sh`. If
+      # they run in parallel, all but the first push will be rejected with
+      # `cannot lock ref 'refs/heads/main'` because the remote has moved. Serialize.
+      max-parallel: 1
       matrix:
         bundle:
           # Bundle with no package manager.
@@ -36,7 +40,7 @@ jobs:
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
