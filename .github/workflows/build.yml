@@ -117,6 +117,7 @@ jobs:
           bin/update-docs-table.sh
 
       - name: Open PR to flarum/docs
+        id: docs-pr
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.docs-token.outputs.token }}
@@ -129,5 +130,16 @@ jobs:
             Updates the install archive download table for **${{ steps.vars.outputs.major }}** to point at the newly built packages for `${{ steps.vars.outputs.full }}`.
 
             Generated automatically by the `flarum/installation-packages` build workflow.
-          # No auto-merge — leave for manual review.
           delete-branch: true
+
+      # flarum/docs `main` is unprotected and deploys on merge, so merge the
+      # freshly-opened PR straight away. Only runs when a PR was actually
+      # created or updated (skips when the table was already up to date).
+      - name: Merge the docs PR
+        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ steps.docs-token.outputs.token }}
+        run: |
+          gh pr merge "${{ steps.docs-pr.outputs.pull-request-number }}" \
+            --repo flarum/docs \
+            --squash --delete-branch
