@@ -3,7 +3,9 @@
 # exit on error.
 set -e
 
-get_expected_version() {
+# The major line for a version, e.g. "1.8.3" or "2.0.0-rc.1" -> "2.x".
+# Used for grouping packages under packages/v<major>/.
+get_major_line() {
     local FLARUM_VERSION="$1"
 
     # Remove the leading 'v' if it exists
@@ -13,22 +15,19 @@ get_expected_version() {
     IFS='.' read -ra version_parts <<< "$version"
     local major=${version_parts[0]}
 
-    # stability tag
-    local stability=$(get_stability_tag $version)
-
-    # Construct the expected version
-    local majorSemanticVersion=""
-    if [ -n "$stability" ]; then
-        majorSemanticVersion="$major.x-$stability"
-    else
-        majorSemanticVersion="$major.x"
-    fi
-
-    # Return the expected version
-    echo "$majorSemanticVersion"
+    echo "$major.x"
 }
 
-# get the stability tag from the version number
+# The full version with a single leading 'v', e.g. "v2.0.0-rc.1".
+# Used for naming the package files and their directory so each release is
+# retained with its exact version.
+get_full_version() {
+    local FLARUM_VERSION="$1"
+    echo "v${FLARUM_VERSION#v}"
+}
+
+# get the stability tag from the version number, e.g. "2.0.0-rc.1" -> "rc".
+# Empty for stable releases.
 get_stability_tag() {
     local FLARUM_VERSION="$1"
 
@@ -38,7 +37,7 @@ get_stability_tag() {
 
     # Check for stability suffix
     for tag in "${stabilityTags[@]}"; do
-        if [[ $version == *"-$tag"* ]]; then
+        if [[ $FLARUM_VERSION == *"-$tag"* ]]; then
             stability=$tag
             break
         fi
@@ -71,8 +70,12 @@ if [[ "$BUNDLE_VALUE" != "default" ]]; then
   done
 fi
 
-# From the tag name which is in the format of v1.8.3 or v1.8.3-beta.13 extract a major version number (1.0)
-FLARUM_MAJOR_VERSION=$(get_expected_version $FLARUM_VERSION)
+# From the tag name (e.g. v1.8.3 or v2.0.0-rc.1) derive:
+#  - the major line (2.x) for grouping and the Composer constraint
+#  - the full version (v2.0.0-rc.1) for naming the retained packages
+#  - the stability tag (rc), passed to Composer via --stability
+FLARUM_MAJOR_LINE=$(get_major_line $FLARUM_VERSION)
+FLARUM_FULL_VERSION=$(get_full_version $FLARUM_VERSION)
 STABILITY_TAG=$(get_stability_tag $FLARUM_VERSION)
 
 # default to stable if empty
@@ -95,8 +98,10 @@ for php in $PHP_VERSIONS; do
 
   # Install Flarum.
   echo -e "$style - installing Flarum... $reset"
-  # replace .x with .0
-  FLARUM_COMPOSER_VERSION=${FLARUM_MAJOR_VERSION//.x/.0}
+  # Build the constraint from the major line: 2.x -> ^2.0. Stability (e.g. rc)
+  # is expressed via --stability, NOT baked into the constraint — `^2.0-rc` is
+  # not a valid constraint and fails on some Composer versions.
+  FLARUM_COMPOSER_VERSION=${FLARUM_MAJOR_LINE//.x/.0}
   composer create-project flarum/flarum:^$FLARUM_COMPOSER_VERSION . --no-dev --stability=$STABILITY_TAG --no-install
 
   # Install additional Extensions.
@@ -120,9 +125,11 @@ for php in $PHP_VERSIONS; do
     BUNDLE_SUFFIX="-${BUNDLE_NAME}"
   fi
 
-  # Set file name and destination path.
-  FILE_NAME=flarum-v$FLARUM_MAJOR_VERSION$BUNDLE_SUFFIX-php$php
-  FILE_DESTINATION=packages/v$FLARUM_MAJOR_VERSION
+  # Set file name and destination path. Packages are named with their exact
+  # version and grouped by major line, so every release is retained:
+  #   packages/v2.x/v2.0.0-rc.1/flarum-v2.0.0-rc.1-no-public-dir-php8.3.zip
+  FILE_NAME=flarum-$FLARUM_FULL_VERSION$BUNDLE_SUFFIX-php$php
+  FILE_DESTINATION=packages/v$FLARUM_MAJOR_LINE/$FLARUM_FULL_VERSION
 
   # If the bundle name is `no-public-dir` we will modify the skeleton to remove the public directory.
   if [[ "$BUNDLE_NAME" == "no-public-dir" ]]; then
@@ -184,7 +191,7 @@ if [[ "$BUNDLE_NAME_OR_DEFAULT" == "" ]]; then
 fi
 
 # Commit package.
-git commit -m "Installation packages for Flarum v$FLARUM_MAJOR_VERSION ($BUNDLE_NAME_OR_DEFAULT)" -a
+git commit -m "Installation packages for Flarum $FLARUM_FULL_VERSION ($BUNDLE_NAME_OR_DEFAULT)" -a
 
 # Push while rebasing to avoid conflicts.
 git pull --rebase
