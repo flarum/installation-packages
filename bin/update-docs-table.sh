@@ -81,8 +81,9 @@ divider="|----------------|-------------|-------------|--------|---------|"
 # with the freshly generated one, using awk so surrounding prose is preserved.
 tmp=$(mktemp)
 TABLE="$header"$'\n'"$divider"$'\n'"$rows" awk '
-  # Detect the start of the archive table by its header row.
-  /^\| Flarum Version \| PHP Version \|/ && !done {
+  # Detect the start of the archive table by its header row. Tolerate any
+  # cell padding (existing tables pad columns to align them).
+  /^\| *Flarum Version *\| *PHP Version *\|/ && !done {
     print ENVIRON["TABLE"]
     intable = 1
     done = 1
