@@ -25,10 +25,12 @@ set -euo pipefail
 # Normalise: ensure a single leading 'v'.
 full_version="v${FLARUM_VERSION#v}"
 
-# Major line for the first column and the raw URL path, e.g. "2.x".
+# Major line for the raw URL path, e.g. "2.x"; and the exact version shown in
+# the table's first column, e.g. "2.0.0-rc.5".
 version_no_v="${full_version#v}"
 IFS='.' read -ra parts <<< "$version_no_v"
 major_line="${parts[0]}.x"
+display_version="$version_no_v"
 
 repo_raw="https://github.com/flarum/installation-packages/raw/main"
 
@@ -60,7 +62,7 @@ for file in $(ls "$PACKAGES_DIR" | sort); do
   esac
 
   url="$repo_raw/$PACKAGES_DIR/$file"
-  rows+="| $major_line | $php | $public | $type | [$file]($url) |"$'\n'
+  rows+="| $display_version | $php | $public | $type | [$file]($url) |"$'\n'
 done
 
 if [ -z "$rows" ]; then
