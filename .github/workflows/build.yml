@@ -68,8 +68,9 @@ jobs:
       - name: Check out installation-packages (for the built files + generator)
         uses: actions/checkout@v4
         with:
-          # `build` committed the new packages to main; fetch that state.
-          ref: main
+          # Check out the ref the workflow ran on: the `build` job committed the
+          # freshly-built packages to it, and it carries the generator script.
+          ref: ${{ github.ref }}
 
       - name: Derive version paths
         id: vars
