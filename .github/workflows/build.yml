@@ -57,3 +57,76 @@ jobs:
           PHP_VERSIONS: ${{ inputs.php_versions }}
           BUNDLE_NAME: ${{ matrix.bundle.name }}
           BUNDLE_VALUE: ${{ matrix.bundle.value }}
+
+  # After all packages for this version are built and committed, open a PR to
+  # flarum/docs updating the install.md download table to point at them.
+  docs-pr:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out installation-packages (for the built files + generator)
+        uses: actions/checkout@v4
+        with:
+          # `build` committed the new packages to main; fetch that state.
+          ref: main
+
+      - name: Derive version paths
+        id: vars
+        run: |
+          FULL="v${FLARUM_VERSION#v}"
+          MAJOR="${FULL#v}"; MAJOR="${MAJOR%%.*}.x"
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "packages_dir=packages/v$MAJOR/$FULL" >> "$GITHUB_OUTPUT"
+          # 2.x is the current (unversioned) docs; older majors are versioned.
+          if [ "$MAJOR" = "2.x" ]; then
+            echo "install_md=docs/install.md" >> "$GITHUB_OUTPUT"
+          else
+            echo "install_md=versioned_docs/version-$MAJOR/install.md" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          FLARUM_VERSION: ${{ inputs.flarum_version }}
+
+      # Mint a short-lived token from the flarum GitHub App so we can open a PR
+      # in the separate flarum/docs repo. Requires the DOCS_APP_ID and
+      # DOCS_APP_PRIVATE_KEY secrets (App scoped to flarum/docs +
+      # installation-packages with Contents + Pull requests write).
+      - name: Generate docs App token
+        id: docs-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.DOCS_APP_ID }}
+          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+          owner: flarum
+          repositories: docs
+
+      - name: Check out flarum/docs
+        uses: actions/checkout@v4
+        with:
+          repository: flarum/docs
+          token: ${{ steps.docs-token.outputs.token }}
+          path: docs-repo
+
+      - name: Regenerate the download table
+        run: |
+          FLARUM_VERSION='${{ inputs.flarum_version }}' \
+          PACKAGES_DIR='${{ steps.vars.outputs.packages_dir }}' \
+          INSTALL_MD='docs-repo/${{ steps.vars.outputs.install_md }}' \
+          bin/update-docs-table.sh
+
+      - name: Open PR to flarum/docs
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.docs-token.outputs.token }}
+          path: docs-repo
+          branch: update-install-links-${{ steps.vars.outputs.full }}
+          base: main
+          commit-message: "Update ${{ steps.vars.outputs.major }} install download links for ${{ steps.vars.outputs.full }}"
+          title: "Update ${{ steps.vars.outputs.major }} install download links for ${{ steps.vars.outputs.full }}"
+          body: |
+            Updates the install archive download table for **${{ steps.vars.outputs.major }}** to point at the newly built packages for `${{ steps.vars.outputs.full }}`.
+
+            Generated automatically by the `flarum/installation-packages` build workflow.
+          # No auto-merge — leave for manual review.
+          delete-branch: true
