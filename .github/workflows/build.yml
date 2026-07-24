@@ -40,7 +40,7 @@ jobs:
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -57,3 +57,89 @@ jobs:
           PHP_VERSIONS: ${{ inputs.php_versions }}
           BUNDLE_NAME: ${{ matrix.bundle.name }}
           BUNDLE_VALUE: ${{ matrix.bundle.value }}
+
+  # After all packages for this version are built and committed, open a PR to
+  # flarum/docs updating the install.md download table to point at them.
+  docs-pr:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out installation-packages (for the built files + generator)
+        uses: actions/checkout@v7
+        with:
+          # Check out the ref the workflow ran on: the `build` job committed the
+          # freshly-built packages to it, and it carries the generator script.
+          ref: ${{ github.ref }}
+
+      - name: Derive version paths
+        id: vars
+        run: |
+          FULL="v${FLARUM_VERSION#v}"
+          MAJOR="${FULL#v}"; MAJOR="${MAJOR%%.*}.x"
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "packages_dir=packages/v$MAJOR/$FULL" >> "$GITHUB_OUTPUT"
+          # 2.x is the current (unversioned) docs; older majors are versioned.
+          if [ "$MAJOR" = "2.x" ]; then
+            echo "install_md=docs/install.md" >> "$GITHUB_OUTPUT"
+          else
+            echo "install_md=versioned_docs/version-$MAJOR/install.md" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          FLARUM_VERSION: ${{ inputs.flarum_version }}
+
+      # Mint a short-lived token from the flarum GitHub App so we can open a PR
+      # in the separate flarum/docs repo. Requires the DOCS_APP_ID and
+      # DOCS_APP_PRIVATE_KEY secrets (App scoped to flarum/docs +
+      # installation-packages with Contents + Pull requests write).
+      - name: Generate docs App token
+        id: docs-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.DOCS_APP_ID }}
+          private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
+          owner: flarum
+          repositories: docs
+
+      - name: Check out flarum/docs
+        uses: actions/checkout@v7
+        with:
+          repository: flarum/docs
+          token: ${{ steps.docs-token.outputs.token }}
+          path: docs-repo
+
+      - name: Regenerate the download table
+        run: |
+          FLARUM_VERSION='${{ inputs.flarum_version }}' \
+          PACKAGES_DIR='${{ steps.vars.outputs.packages_dir }}' \
+          INSTALL_MD='docs-repo/${{ steps.vars.outputs.install_md }}' \
+          bin/update-docs-table.sh
+
+      - name: Open PR to flarum/docs
+        id: docs-pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.docs-token.outputs.token }}
+          path: docs-repo
+          branch: update-install-links-${{ steps.vars.outputs.full }}
+          base: main
+          commit-message: "Update ${{ steps.vars.outputs.major }} install download links for ${{ steps.vars.outputs.full }}"
+          title: "Update ${{ steps.vars.outputs.major }} install download links for ${{ steps.vars.outputs.full }}"
+          body: |
+            Updates the install archive download table for **${{ steps.vars.outputs.major }}** to point at the newly built packages for `${{ steps.vars.outputs.full }}`.
+
+            Generated automatically by the `flarum/installation-packages` build workflow.
+          delete-branch: true
+
+      # flarum/docs `main` is unprotected and deploys on merge, so merge the
+      # freshly-opened PR straight away. Only runs when a PR was actually
+      # created or updated (skips when the table was already up to date).
+      - name: Merge the docs PR
+        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ steps.docs-token.outputs.token }}
+        run: |
+          gh pr merge "${{ steps.docs-pr.outputs.pull-request-number }}" \
+            --repo flarum/docs \
+            --squash --delete-branch
