@@ -68,6 +68,10 @@ if [ -z "$rows" ]; then
   exit 1
 fi
 
+# Drop the trailing newline so the generated block doesn't leave a blank line
+# before the following section.
+rows=${rows%$'\n'}
+
 header="| Flarum Version | PHP Version | Public Path | Type   | Archive |"
 divider="|----------------|-------------|-------------|--------|---------|"
 

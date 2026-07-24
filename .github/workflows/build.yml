@@ -40,7 +40,7 @@ jobs:
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out installation-packages (for the built files + generator)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Check out the ref the workflow ran on: the `build` job committed the
           # freshly-built packages to it, and it carries the generator script.
@@ -95,7 +95,7 @@ jobs:
       # installation-packages with Contents + Pull requests write).
       - name: Generate docs App token
         id: docs-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.DOCS_APP_ID }}
           private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
@@ -103,7 +103,7 @@ jobs:
           repositories: docs
 
       - name: Check out flarum/docs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: flarum/docs
           token: ${{ steps.docs-token.outputs.token }}
@@ -117,7 +117,7 @@ jobs:
           bin/update-docs-table.sh
 
       - name: Open PR to flarum/docs
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.docs-token.outputs.token }}
           path: docs-repo
