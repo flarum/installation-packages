@@ -37,8 +37,20 @@ repo_raw="https://github.com/flarum/installation-packages/raw/main"
 # Build the table rows from the files present in PACKAGES_DIR.
 # File format: flarum-<full_version>[-no-public-dir]-php<X>.<zip|tar.gz>
 rows=""
-# Sort for deterministic output.
-for file in $(ls "$PACKAGES_DIR" | sort); do
+# Order newest PHP version first (descending), with a stable filename tiebreak
+# so bundles/formats within a PHP version keep a deterministic order. We prefix
+# each file with its PHP version, version-sort descending, then strip it.
+sorted_files=$(
+  for f in "$PACKAGES_DIR"/*; do
+    bn=$(basename "$f")
+    if [[ "$bn" != flarum-*.zip && "$bn" != flarum-*.tar.gz ]]; then
+      continue
+    fi
+    v=$(echo "$bn" | sed -E 's/.*-php([0-9]+\.[0-9]+)\.(zip|tar\.gz)$/\1/')
+    printf '%s\t%s\n' "$v" "$bn"
+  done | sort -t$'\t' -k1,1rV -k2,2 | cut -f2-
+)
+for file in $sorted_files; do
   # Only consider our package archives.
   case "$file" in
     flarum-*.zip|flarum-*.tar.gz) ;;
