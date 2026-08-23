@@ -40,13 +40,13 @@ jobs:
     name: Build Flarum ${{ inputs.flarum_version }} - ${{ matrix.bundle.name }} Bundle - PHP ${{ inputs.php_versions }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: 8.1
-          coverage: xdebug
+          php-version: 8.4
+          coverage: none
           extensions: curl, dom, gd, json, mbstring, openssl, pdo_mysql, tokenizer, zip
           tools: composer:v2
 
@@ -66,7 +66,7 @@ jobs:
 
     steps:
       - name: Check out installation-packages (for the built files + generator)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Check out the ref the workflow ran on: the `build` job committed the
           # freshly-built packages to it, and it carries the generator script.
@@ -95,7 +95,7 @@ jobs:
       # installation-packages with Contents + Pull requests write).
       - name: Generate docs App token
         id: docs-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.DOCS_APP_ID }}
           private-key: ${{ secrets.DOCS_APP_PRIVATE_KEY }}
@@ -103,7 +103,7 @@ jobs:
           repositories: docs
 
       - name: Check out flarum/docs
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: flarum/docs
           token: ${{ steps.docs-token.outputs.token }}
@@ -118,7 +118,7 @@ jobs:
 
       - name: Open PR to flarum/docs
         id: docs-pr
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ steps.docs-token.outputs.token }}
           path: docs-repo
